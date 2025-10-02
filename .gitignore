@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 lambda/*.dist-info/
 lambda/*/__pycache__/
+scripts/client_secret.json
