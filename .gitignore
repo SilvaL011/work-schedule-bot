@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+*.zip
+*.pyc
+lambda/*.dist-info/
+lambda/*/__pycache__/

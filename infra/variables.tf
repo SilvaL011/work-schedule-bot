@@ -1,0 +1,1 @@
+#Declares the Terraform input variables you can tweak without editing resources directly.

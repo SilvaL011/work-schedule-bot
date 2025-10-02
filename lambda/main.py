@@ -1,0 +1,1 @@
+#On a schedule, it reads recent schedule emails from Gmail, parses shifts, and upserts events into Google Calendar.
