@@ -5,3 +5,6 @@ __pycache__/
 lambda/*.dist-info/
 lambda/*/__pycache__/
 scripts/client_secret.json
+lambda/*
+!lambda/main.py
+!lambda/requirements.txt
