@@ -99,8 +99,8 @@ def handler(event, context):
         tz=cfg.get("timezone", "America/Toronto"),
         sender_filter=cfg["sender_filter"],
     )
-
     return {"ok": True, "created": created, "updated": updated}
+
 
 
 def _gmail_messages(gmail, sender_filter: str, days: int = 30, max_results: int = 10):

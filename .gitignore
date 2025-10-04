@@ -1,11 +1,30 @@
-__pycache__/
+# --- Secrets (Google/AWS/etc) ---
+**/client_secret*.json
+**/*oauth*secret*.json
+**/*token*.json
+scripts/secret.json
+
+# --- VS Code (personal settings) ---
+.vscode/
+
+# --- Terraform (keep only the lock file) ---
+infra/.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+infra/lambda.zip
+infra/out.json
+!infra/.terraform.lock.hcl
+
+# --- Python / env ---
 .venv/
-*.zip
+__pycache__/
 *.pyc
-lambda/*.dist-info/
-lambda/*/__pycache__/
-scripts/client_secret.json
+
+# --- Vendored lambda libs (keep code files) ---
 lambda/*
 !lambda/main.py
 !lambda/requirements.txt
-.vscode/settings.json
+
+# --- Misc ---
+.DS_Store
