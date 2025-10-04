@@ -8,3 +8,4 @@ scripts/client_secret.json
 lambda/*
 !lambda/main.py
 !lambda/requirements.txt
+.vscode/settings.json
