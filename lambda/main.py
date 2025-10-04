@@ -6,7 +6,6 @@ from botocore.exceptions import ClientError
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 import re
-from datetime import datetime
 from zoneinfo import ZoneInfo
 from dateutil import parser as dtparse
 import base64
@@ -15,7 +14,8 @@ import hashlib
 from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
-SUBJECT_FILTER = "Publish Schedule Notification"
+SUBJECT_FILTER = os.environ.get("SUBJECT_FILTER", "Publish Schedule Notification")
+SHIFT_TITLE    = os.environ.get("SHIFT_TITLE", "Work")
 SECRET_NAME = os.environ.get("SECRET_NAME", "work-schedule-bot")
 EVENT_COLOR_ID = os.getenv("EVENT_COLOR_ID", "6")  # Tangerine (orange-ish in Google’s palette)
 
@@ -208,7 +208,7 @@ def _parse_synerion_table(html: str, tz: str):
         shifts.append({
             "start": start_dt,
             "end": end_dt,
-            "summary": "Work",
+            "summary": SHIFT_TITLE,
             "location": None,   # department dropped per your preference
         })
 

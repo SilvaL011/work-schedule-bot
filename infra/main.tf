@@ -70,12 +70,13 @@ resource "aws_lambda_function" "bot" {
   timeout          = 60
 
   environment {
-    variables = {
-      SECRET_NAME    = var.secret_name
-      EVENT_COLOR_ID = "6"    # orange
-      SHIFT_TITLE    = "Work" # change if you want
-    }
+  variables = {
+    SECRET_NAME    = var.secret_name
+    EVENT_COLOR_ID = "6"
+    SHIFT_TITLE    = "Work"
+    SUBJECT_FILTER = "Publish Schedule Notification"
   }
+}
 }
 
 # Weekly schedule — default from variables.tf (Sundays 14:00 UTC)
