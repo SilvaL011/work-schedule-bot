@@ -17,7 +17,6 @@ from datetime import datetime, timedelta
 log = logging.getLogger(__name__)
 SUBJECT_FILTER = "Publish Schedule Notification"
 SECRET_NAME = os.environ.get("SECRET_NAME", "work-schedule-bot")
-DO_WRITE_ONE = False   # set True once to test creating/updating the FIRST shift only
 EVENT_COLOR_ID = os.getenv("EVENT_COLOR_ID", "6")  # Tangerine (orange-ish in Google’s palette)
 
 
@@ -286,6 +285,8 @@ def _preview_shifts(shifts):
         window = f"{s['start'].strftime('%H:%M')}–{s['end'].strftime('%H:%M')}"
         print(f"- {day} {window}  |  {s['summary']}")
 
+"""
+#Commented out main used for testing
 if __name__ == "__main__":
     # Your secret is in us-east-2; keep this aligned with where the secret lives.
     os.environ.setdefault("AWS_REGION", "us-east-2")
@@ -316,3 +317,5 @@ if __name__ == "__main__":
     else:
         for s in shifts:
             print(f"[DRY-RUN] {s['start'].strftime('%a %m/%d %H:%M')}–{s['end'].strftime('%H:%M')} -> {s['summary']}")
+
+"""
