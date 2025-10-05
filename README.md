@@ -210,3 +210,27 @@ terraform apply \
 
 
 
+
+## Skills Used
+
+**Cloud & DevOps**
+- AWS Lambda (serverless compute), EventBridge (scheduling), Secrets Manager (secure config), IAM (least-privilege), CloudWatch (logs)
+- AWS CLI for one-off invokes and log tailing
+
+**Infrastructure as Code**
+- Terraform: provider lockfile, reproducible builds, clean state hygiene, per-env variables
+
+**APIs & Auth**
+- Google Gmail API + Calendar API
+- OAuth 2.0 “installed app” flow with long-lived refresh token (stored in Secrets Manager)
+
+**Python Engineering**
+- Python 3.12, vendored dependencies for Lambda packaging
+- Parsing with BeautifulSoup, datetime handling with `dateutil` + `zoneinfo`, regex for robust extraction
+
+**Security & Compliance**
+- No secrets in git (`.gitignore` rules for client secrets/tokens/state)
+- IAM policy scoped to a single secret ARN (principle of least privilege)
+
+**Process & Collaboration**
+- Git-based workflow, clear README/RUNBOOK

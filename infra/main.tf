@@ -75,6 +75,7 @@ resource "aws_lambda_function" "bot" {
     EVENT_COLOR_ID = "6"
     SHIFT_TITLE    = "Work"
     SUBJECT_FILTER = "Publish Schedule Notification"
+    NUM_PUBLISH_EMAILS = "5"
   }
 }
 }

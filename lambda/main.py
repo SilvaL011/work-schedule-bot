@@ -18,6 +18,8 @@ SUBJECT_FILTER = os.environ.get("SUBJECT_FILTER", "Publish Schedule Notification
 SHIFT_TITLE    = os.environ.get("SHIFT_TITLE", "Work")
 SECRET_NAME = os.environ.get("SECRET_NAME", "work-schedule-bot")
 EVENT_COLOR_ID = os.getenv("EVENT_COLOR_ID", "6")  # Tangerine (orange-ish in Google’s palette)
+NUM_PUBLISH_EMAILS = int(os.getenv("NUM_PUBLISH_EMAILS", "5"))
+
 
 
 def _load_secret():
@@ -84,22 +86,46 @@ def _process_latest_email(gmail, gcal, calendar_id: str, tz: str, sender_filter:
             updated += 1
     return created, updated
 
+def _recent_published_messages(gmail, sender_filter: str, days: int = 30, limit: int = 5):
+    """
+    Return up to `limit` most-recent schedule publish emails.
+    We process oldest→newest to keep behavior stable.
+    """
+    msgs = _gmail_messages(gmail, sender_filter, days=days, max_results=limit)
+    return list(reversed(msgs))  # oldest first
+
+def _process_recent_emails(gmail, gcal, calendar_id: str, tz: str, sender_filter: str, limit: int = 5):
+    """Parse the last `limit` published schedules and upsert shifts for each."""
+    created = updated = 0
+    msgs = _recent_published_messages(gmail, sender_filter, days=30, limit=limit)
+    for m in msgs:
+        html = _get_message_html(gmail, m["id"])
+        shifts = _parse_synerion_table(html, tz)
+        for s in shifts:
+            status = _upsert_event(gcal, calendar_id, s)
+            if status == "created":
+                created += 1
+            elif status == "updated":
+                updated += 1
+    return created, updated
+
+
 
 def handler(event, context):
-    """Weekly run: read ONLY the latest published schedule and upsert all shifts."""
+    """Weekly run: read the last few published schedules and upsert all shifts."""
     cfg = _load_secret()
     creds = _google_creds(cfg)
     gmail, gcal = _build_google_clients(creds)
 
-    created, updated = _process_latest_email(
+    created, updated = _process_recent_emails(
         gmail=gmail,
         gcal=gcal,
         calendar_id=cfg.get("calendar_id", "primary"),
         tz=cfg.get("timezone", "America/Toronto"),
         sender_filter=cfg["sender_filter"],
+        limit=NUM_PUBLISH_EMAILS,
     )
     return {"ok": True, "created": created, "updated": updated}
-
 
 
 def _gmail_messages(gmail, sender_filter: str, days: int = 30, max_results: int = 10):
