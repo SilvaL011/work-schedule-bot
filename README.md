@@ -207,10 +207,6 @@ terraform apply \
   -var 'schedule_expression=cron(0 14 ? * SUN *)'
 ```
 
-
-
-
-
 ## Skills Used
 
 **Cloud & DevOps**
