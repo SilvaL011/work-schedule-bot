@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 SUBJECT_FILTER = os.environ.get("SUBJECT_FILTER", "Publish Schedule Notification")
 SHIFT_TITLE    = os.environ.get("SHIFT_TITLE", "Work")
 SECRET_NAME = os.environ.get("SECRET_NAME", "work-schedule-bot")
-EVENT_COLOR_ID = os.getenv("EVENT_COLOR_ID", "6")  # Tangerine (orange-ish in Google’s palette)
+EVENT_COLOR_ID = os.getenv("EVENT_COLOR_ID", "6")
 NUM_PUBLISH_EMAILS = int(os.getenv("NUM_PUBLISH_EMAILS", "5"))
 
 
@@ -26,7 +26,7 @@ def _load_secret():
     #Read JSON config from AWS Secrets Manager and return it as a dict.
     #Expects one JSON object (the one you saved earlier).
 
-    region = os.getenv("AWS_REGION", "ca-central-1")  # use your region; CLI sets this when you run in Lambda
+    region = os.getenv("AWS_REGION", "ca-central-1")
     try:
         client = boto3.session.Session().client("secretsmanager", region_name=region)
         resp = client.get_secret_value(SecretId=SECRET_NAME)
@@ -72,7 +72,7 @@ def _process_latest_email(gmail, gcal, calendar_id: str, tz: str, sender_filter:
     """Parse the latest published schedule and create/update events."""
     m = _latest_published_message(gmail, sender_filter)
     if not m:
-        return 0, 0  # created, updated
+        return 0, 0
 
     html = _get_message_html(gmail, m["id"])
     shifts = _parse_synerion_table(html, tz)
@@ -92,7 +92,7 @@ def _recent_published_messages(gmail, sender_filter: str, days: int = 30, limit:
     We process oldest→newest to keep behavior stable.
     """
     msgs = _gmail_messages(gmail, sender_filter, days=days, max_results=limit)
-    return list(reversed(msgs))  # oldest first
+    return list(reversed(msgs))
 
 def _process_recent_emails(gmail, gcal, calendar_id: str, tz: str, sender_filter: str, limit: int = 5):
     """Parse the last `limit` published schedules and upsert shifts for each."""
@@ -146,12 +146,10 @@ def _get_message_html(gmail, msg_id: str) -> str:
     def _dec(b64: str) -> str:
         return base64.urlsafe_b64decode(b64.encode()).decode(errors="ignore")
 
-    # try HTML first
     for p in parts or []:
         if p.get("mimeType") == "text/html" and p.get("body", {}).get("data"):
             return _dec(p["body"]["data"])
 
-    # fallback to any body
     if parts:
         for p in parts:
             data = p.get("body", {}).get("data")
@@ -173,7 +171,6 @@ def _parse_synerion_table(html: str, tz: str):
     soup = BeautifulSoup(html, "html.parser")
     text_all = soup.get_text(" ", strip=True)
 
-    # year from header line
     year = None
     m = re.search(r"published\s+from\s+(\d{1,2}/\d{1,2}/\d{4})\s+to\s+(\d{1,2}/\d{1,2}/\d{4})", text_all, re.I)
     if m:
@@ -181,7 +178,6 @@ def _parse_synerion_table(html: str, tz: str):
     if not year:
         year = datetime.now(ZoneInfo(tz)).year
 
-    # find the table by headers
     target = None
     for tbl in soup.find_all("table"):
         ths = [th.get_text(strip=True).lower() for th in tbl.find_all("th")]
@@ -200,25 +196,22 @@ def _parse_synerion_table(html: str, tz: str):
         if len(tds) < 2:
             continue
 
-        date_cell = tds[0]            # e.g., "Tue 10/07"
-        time_cell = tds[1]            # e.g., "12:00 - 20:15" or "Day off"
+        date_cell = tds[0]
+        time_cell = tds[1]
 
-        # skip days off
         if re.search(r"\bday\s*off\b", time_cell, re.I):
             continue
 
-        # mm/dd from the date cell
         dm = re.search(r"(\d{1,2})/(\d{1,2})", date_cell)
+
         if not dm:
             continue
         mm, dd = int(dm.group(1)), int(dm.group(2))
 
-        # normalize separators: handle "-", "–", with/without spaces
         norm = time_cell.replace("–", "-").replace("—", "-")
-        # remove extra spaces around the dash
         norm = re.sub(r"\s*-\s*", "-", norm)
-        # split into start/end
         parts = norm.split("-")
+
         if len(parts) != 2:
             continue
         start_t = parts[0].strip()
@@ -228,14 +221,13 @@ def _parse_synerion_table(html: str, tz: str):
             start_dt = dtparse.parse(f"{year}-{mm:02d}-{dd:02d} {start_t}").replace(tzinfo=tzinfo)
             end_dt   = dtparse.parse(f"{year}-{mm:02d}-{dd:02d} {end_t}").replace(tzinfo=tzinfo)
         except Exception:
-            # if dateutil ever chokes, skip this row
             continue
 
         shifts.append({
             "start": start_dt,
             "end": end_dt,
             "summary": SHIFT_TITLE,
-            "location": None,   # department dropped per your preference
+            "location": None,
         })
 
     return shifts
@@ -284,19 +276,18 @@ def _upsert_event(calendar, calendar_id: str, shift: dict) -> str:
     existing = _find_existing(calendar, calendar_id, h, shift["start"])
 
     body = {
-        "summary": shift["summary"],                       # e.g., "Work"
+        "summary": shift["summary"],
         "start": {"dateTime": shift["start"].isoformat()},
         "end":   {"dateTime": shift["end"].isoformat()},
         "extendedProperties": {"private": {"hash": h}},
         "reminders": {"useDefault": True},
-        "colorId": EVENT_COLOR_ID,                        # keep your orange color
+        "colorId": EVENT_COLOR_ID,
     }
 
     if existing:
         calendar.events().update(calendarId=calendar_id, eventId=existing["id"], body=body).execute()
         return "updated"
 
-    # No hashed match → before creating, skip if a manual event already overlaps this window.
     if _has_overlap(calendar, calendar_id, shift["start"], shift["end"], title_hint=shift["summary"]):
         return "skipped_overlap"
 

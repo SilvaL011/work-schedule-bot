@@ -17,6 +17,40 @@ This project was built in order to automate the input of my work schedule(receiv
 - Python: google-api-python-client, google-auth, beautifulsoup4, python-dateutil
 - IaC: Terraform
 
+## Skills Used
+
+**Cloud & DevOps**
+- AWS Lambda (serverless compute), EventBridge (scheduling), Secrets Manager (secure config), IAM (least-privilege), CloudWatch (logs)
+- AWS CLI for one-off invokes and log tailing
+
+**Infrastructure as Code**
+- Terraform: provider lockfile, reproducible builds, clean state hygiene, per-env variables
+
+**APIs & Auth**
+- Google Gmail API + Calendar API
+- OAuth 2.0 “installed app” flow with long-lived refresh token (stored in Secrets Manager)
+
+**Python Engineering**
+- Python 3.12, vendored dependencies for Lambda packaging
+- Parsing with BeautifulSoup, datetime handling with `dateutil` + `zoneinfo`, regex for robust extraction
+
+**Reliability / Design**
+- Idempotent “upsert” events using a stable hash in `extendedProperties.private`
+- Overlap detection to avoid duplicating manual calendar events
+- Config via environment variables (title, color, subject filter, email lookback window)
+
+**Security & Compliance**
+- No secrets in git (`.gitignore` rules for client secrets/tokens/state)
+- IAM policy scoped to a single secret ARN (principle of least privilege)
+
+**Observability**
+- Structured logging to CloudWatch, on-demand test invokes
+- (Optional) CloudWatch alarm on Lambda errors
+
+**Process & Collaboration**
+- Git-based workflow, clear README/RUNBOOK
+- Easy toggle between “test every minute” and “weekly cron” via Terraform vars
+
 ## Features
 - Functioning Now
     - ✅ Gmail → parse Synerion table
@@ -207,26 +241,6 @@ terraform apply \
   -var 'schedule_expression=cron(0 14 ? * SUN *)'
 ```
 
-## Skills Used
 
-**Cloud & DevOps**
-- AWS Lambda (serverless compute), EventBridge (scheduling), Secrets Manager (secure config), IAM (least-privilege), CloudWatch (logs)
-- AWS CLI for one-off invokes and log tailing
 
-**Infrastructure as Code**
-- Terraform: provider lockfile, reproducible builds, clean state hygiene, per-env variables
 
-**APIs & Auth**
-- Google Gmail API + Calendar API
-- OAuth 2.0 “installed app” flow with long-lived refresh token (stored in Secrets Manager)
-
-**Python Engineering**
-- Python 3.12, vendored dependencies for Lambda packaging
-- Parsing with BeautifulSoup, datetime handling with `dateutil` + `zoneinfo`, regex for robust extraction
-
-**Security & Compliance**
-- No secrets in git (`.gitignore` rules for client secrets/tokens/state)
-- IAM policy scoped to a single secret ARN (principle of least privilege)
-
-**Process & Collaboration**
-- Git-based workflow, clear README/RUNBOOK
